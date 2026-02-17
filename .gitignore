@@ -1,0 +1,22 @@
+# Ignore environment variables (CRITICAL)
+**/.env
+
+# Ignore databases
+**/*.db
+
+# Ignore all Python cache/compiled files everywhere
+**/__pycache__/
+**/*.pyc
+
+# Ignore dependencies
+**/venv/
+**/node_modules/
+
+# Frontend builds
+**/dist/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

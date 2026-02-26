@@ -1,22 +1,28 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from datetime import timedelta
+import os
 
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
 
-def create_app(config_name='development'):
-    app = Flask(__name__)
+def create_app(config_name='production'):
+
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+    frontend_build_path = os.path.join(basedir, '..', '..', 'frontend', 'dist')
+
+    app = Flask(__name__, static_folder=frontend_build_path, static_url_path='')
     
     # Configuration
-    app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///routine_tracker.db'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///routine_tracker.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['JWT_SECRET_KEY'] = 'jwt-secret-key-change-in-production'
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
     
     # Initialize extensions
@@ -25,7 +31,12 @@ def create_app(config_name='development'):
     migrate.init_app(app, db)
     
     # CORS - Allow all for development
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Authorization", "Content-Type"]            
+            }})
     
     # Import models to register them with SQLAlchemy
     from app.models.user import User
@@ -48,6 +59,24 @@ def create_app(config_name='development'):
     def health_check():
         return jsonify({'status': 'ok'})
     
+
+
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_react(path):
+        if path.startswith('api/'):
+            return jsonify({'error': 'not found'}), 404
+        
+        file_path = os.path.join(app.static_folder, path)
+        if path and os.path.exists(file_path):
+            return send_from_directory(app.static_folder, path)
+        
+        return send_from_directory(app.static_folder, 'index.html')
+
+
+
+
+
     # Create tables
     with app.app_context():
         db.create_all()

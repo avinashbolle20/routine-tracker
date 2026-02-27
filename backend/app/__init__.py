@@ -31,6 +31,19 @@ def create_app(config_name='production'):
     migrate.init_app(app, db)
     
     # CORS - Allow all for development
+
+
+    allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    ]
+
+    # Add Render frontend URL (we'll get this after deploy)
+    render_frontend = os.environ.get('FRONTEND_URL')
+    if render_frontend:
+        allowed_origins.append(render_frontend)
+
+
     CORS(app, resources={
         r"/api/*": {
             "origins": "*",

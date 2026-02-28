@@ -32,21 +32,20 @@ def create_app(config_name='production'):
     
     # CORS - Allow all for development
 
-
+# CORS Configuration
     allowed_origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:3000",
     ]
 
-    # Add Render frontend URL (we'll get this after deploy)
     render_frontend = os.environ.get('FRONTEND_URL')
     if render_frontend:
-        allowed_origins.append(render_frontend)
-
+        # Ensure there is no trailing slash
+        allowed_origins.append(render_frontend.rstrip('/'))
 
     CORS(app, resources={
         r"/api/*": {
-            "origins": "*",
+            "origins": allowed_origins,  # Use the specific list instead of "*"
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Authorization", "Content-Type", "Accept", "Origin"],
             "supports_credentials": True

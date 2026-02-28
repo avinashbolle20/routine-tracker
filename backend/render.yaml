@@ -16,7 +16,7 @@ services:
           name: routine-db
           property: connectionString
       - key: FRONTEND_URL
-        value: https://routine.onrender.com
+        value: https://routine-tracker-bhsw.onrender.com
 
 databases:
   - name: routine-db

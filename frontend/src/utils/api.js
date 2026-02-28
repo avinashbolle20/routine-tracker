@@ -7,7 +7,7 @@ const getBaseURL = () => {
   return '/api';
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://progress-api-1nln.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,

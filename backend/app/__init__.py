@@ -48,8 +48,10 @@ def create_app(config_name='production'):
         r"/api/*": {
             "origins": "*",
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Authorization", "Content-Type"]            
-            }})
+            "allow_headers": ["Authorization", "Content-Type", "Accept", "Origin"],
+            "supports_credentials": True
+        }
+    })
     
     # Import models to register them with SQLAlchemy
     from app.models.user import User

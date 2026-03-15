@@ -11,7 +11,12 @@ const Dashboard = () => {
   const { user, updateUserProgress } = useAuth();
 
   useEffect(() => {
-    fetchDays();
+    const token = localStorage.getItem('access_token');
+    if (token && typeof token === 'string' && token !== 'undefined' && token !== 'null') {
+      fetchDays();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const fetchDays = async () => {

@@ -26,23 +26,37 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const response = await api.post('/auth/login', credentials);
-    const { access_token, refresh_token, user } = response.data;
-    
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('refresh_token', refresh_token);
-    setUser(user);
-    
+    const data = response.data;
+    const access_token = data?.access_token ?? data?.accessToken;
+    const refresh_token = data?.refresh_token ?? data?.refreshToken;
+    const user = data?.user;
+
+    if (access_token && typeof access_token === 'string') {
+      localStorage.setItem('access_token', access_token);
+    }
+    if (refresh_token && typeof refresh_token === 'string') {
+      localStorage.setItem('refresh_token', refresh_token);
+    }
+    if (user) setUser(user);
+
     return user;
   };
 
   const register = async (userData) => {
     const response = await api.post('/auth/register', userData);
-    const { access_token, refresh_token, user } = response.data;
-    
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('refresh_token', refresh_token);
-    setUser(user);
-    
+    const data = response.data;
+    const access_token = data?.access_token ?? data?.accessToken;
+    const refresh_token = data?.refresh_token ?? data?.refreshToken;
+    const user = data?.user;
+
+    if (access_token && typeof access_token === 'string') {
+      localStorage.setItem('access_token', access_token);
+    }
+    if (refresh_token && typeof refresh_token === 'string') {
+      localStorage.setItem('refresh_token', refresh_token);
+    }
+    if (user) setUser(user);
+
     return user;
   };
 

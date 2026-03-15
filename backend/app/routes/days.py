@@ -10,7 +10,7 @@ days_bp = Blueprint('days', __name__)
 @jwt_required()
 def get_days():
     """Get all days for current user"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     days = Day.query.filter_by(user_id=user_id).order_by(Day.day_number.asc()).all()
     user = User.query.get(user_id)
     
@@ -23,7 +23,7 @@ def get_days():
 @jwt_required()
 def get_day(day_number):
     """Get specific day with tasks"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     day = Day.query.filter_by(user_id=user_id, day_number=day_number).first_or_404()
     return jsonify(day.to_dict(include_tasks=True)), 200
 
@@ -31,7 +31,7 @@ def get_day(day_number):
 @jwt_required()
 def update_day(day_number):
     """Update day description and reflection"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     day = Day.query.filter_by(user_id=user_id, day_number=day_number).first_or_404()
     data = request.get_json()
     

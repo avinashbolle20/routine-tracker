@@ -10,7 +10,7 @@ tasks_bp = Blueprint('tasks', __name__)
 @jwt_required()
 def create_task():
     """Create new task for a day"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     
     # Validate
@@ -45,7 +45,7 @@ def create_task():
 @jwt_required()
 def update_task(id):
     """Update task or toggle completion"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     task = Task.query.get_or_404(id)
     
     # Check ownership
@@ -70,7 +70,7 @@ def update_task(id):
 @jwt_required()
 def delete_task(id):
     """Delete task"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     task = Task.query.get_or_404(id)
     
     day = Day.query.get(task.day_id)
@@ -86,7 +86,7 @@ def delete_task(id):
 @jwt_required()
 def toggle_task(id):
     """Toggle task completion"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     task = Task.query.get_or_404(id)
     
     day = Day.query.get(task.day_id)

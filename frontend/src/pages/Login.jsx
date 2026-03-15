@@ -17,6 +17,8 @@ const Login = () => {
 
     try {
       await login(formData);
+      // Ensure tokens are in storage and next paint has run before navigating
+      await new Promise((r) => setTimeout(r, 50));
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
@@ -45,14 +47,17 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="login-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Username or Email
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                id="login-username"
+                name="username"
                 type="text"
                 required
+                autoComplete="username"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                 placeholder="Enter username or email"
                 value={formData.username}
@@ -62,14 +67,17 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                id="login-password"
+                name="password"
                 type="password"
                 required
+                autoComplete="current-password"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                 placeholder="Enter password"
                 value={formData.password}

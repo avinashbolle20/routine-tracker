@@ -11,7 +11,7 @@ topics_bp = Blueprint('topics', __name__)
 @jwt_required()
 def get_topic_by_task(task_id):
     """Get topic for specific task"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     task = Task.query.get_or_404(task_id)
     
     day = Day.query.get(task.day_id)
@@ -28,7 +28,7 @@ def get_topic_by_task(task_id):
 @jwt_required()
 def get_topic(id):
     """Get specific topic"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     topic = Topic.query.get_or_404(id)
     
     task = Task.query.get(topic.task_id)
@@ -42,7 +42,7 @@ def get_topic(id):
 @jwt_required()
 def update_topic(id):
     """Update topic content"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     topic = Topic.query.get_or_404(id)
     
     # Verify ownership
@@ -74,7 +74,7 @@ def update_topic(id):
 @jwt_required()
 def create_topic():
     """Create topic for existing task"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     
     if not data or 'task_id' not in data:

@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from datetime import timedelta
 import os
+import jwt as pyjwt
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -24,11 +25,33 @@ def create_app(config_name='production'):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
-    
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
+
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+
+    # JWT: return 401 for missing/invalid token so frontend can refresh or redirect to login
+    @jwt.unauthorized_loader
+    def missing_token_callback(error_string):
+        return jsonify({'error': error_string or 'Missing or invalid token'}), 401
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        auth = request.headers.get('Authorization')
+        type_hint = ''
+        if auth and auth.startswith('Bearer '):
+            try:
+                token = auth[7:]
+                payload = pyjwt.decode(token, options={'verify_signature': False})
+                type_hint = f" | payload type={payload.get('type')!r}"
+            except Exception as e:
+                type_hint = f" | decode err: {e}"
+        print(f"[JWT] Invalid token: {error_string!r}{type_hint}")
+        return jsonify({'error': error_string or 'Invalid or expired token'}), 401
     
     # CORS - Allow all for development
 
@@ -45,9 +68,10 @@ def create_app(config_name='production'):
 
     CORS(app, resources={
         r"/api/*": {
-            "origins": allowed_origins,  # Use the specific list instead of "*"
+            "origins": allowed_origins,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Authorization", "Content-Type", "Accept", "Origin"],
+            "allow_headers": ["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+            "expose_headers": ["Authorization"],
             "supports_credentials": True
         }
     })
@@ -68,6 +92,16 @@ def create_app(config_name='production'):
     app.register_blueprint(days_bp, url_prefix='/api/days')
     app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
     app.register_blueprint(topics_bp, url_prefix='/api/topics')
+
+    @app.before_request
+    def log_auth_header():
+        if request.method != 'OPTIONS' and request.path.startswith('/api/') and request.path != '/api/health':
+            auth = request.headers.get('Authorization')
+            if auth:
+                preview = auth[:25] + '...' if len(auth) > 25 else auth
+                print(f"[Auth] {request.method} {request.path} Authorization: {preview}")
+            else:
+                print(f"[Auth] {request.method} {request.path} Authorization: (missing)")
     
     @app.route('/api/health')
     def health_check():

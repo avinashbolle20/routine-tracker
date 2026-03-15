@@ -12,7 +12,7 @@ python -m venv venv
 call venv\Scripts\activate.bat
 
 :: Install dependencies
-pip install flask flask-sqlalchemy flask-migrate flask-cors flask-jwt-extended werkzeug python-dotenv bcrypt
+pip install -r requirements.txt
 
 :: Remove old database if exists
 if exist routine_tracker.db del routine_tracker.db

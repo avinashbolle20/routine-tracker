@@ -21,9 +21,9 @@ class AuthService:
         # Initialize 100 days
         user.initialize_100_days()
         
-        # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        # Generate tokens (identity must be a string for Flask-JWT-Extended)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'user': user.to_dict(),
@@ -44,8 +44,8 @@ class AuthService:
         if not user.is_active:
             return None, "Account deactivated"
         
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'user': user.to_dict(),

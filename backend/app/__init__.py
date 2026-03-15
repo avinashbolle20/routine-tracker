@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -16,8 +16,9 @@ def create_app(config_name='production'):
     basedir = os.path.abspath(os.path.dirname(__file__))
 
     frontend_build_path = os.path.join(basedir, '..', '..', 'frontend', 'dist')
+    static_folder = frontend_build_path if os.path.isdir(frontend_build_path) else None
 
-    app = Flask(__name__, static_folder=frontend_build_path, static_url_path='')
+    app = Flask(__name__, static_folder=static_folder, static_url_path='')
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -41,16 +42,17 @@ def create_app(config_name='production'):
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error_string):
-        auth = request.headers.get('Authorization')
-        type_hint = ''
-        if auth and auth.startswith('Bearer '):
-            try:
-                token = auth[7:]
-                payload = pyjwt.decode(token, options={'verify_signature': False})
-                type_hint = f" | payload type={payload.get('type')!r}"
-            except Exception as e:
-                type_hint = f" | decode err: {e}"
-        print(f"[JWT] Invalid token: {error_string!r}{type_hint}")
+        if os.environ.get('FLASK_DEBUG') == '1':
+            auth = request.headers.get('Authorization')
+            type_hint = ''
+            if auth and auth.startswith('Bearer '):
+                try:
+                    token = auth[7:]
+                    payload = pyjwt.decode(token, options={'verify_signature': False})
+                    type_hint = f" | payload type={payload.get('type')!r}"
+                except Exception as e:
+                    type_hint = f" | decode err: {e}"
+                print(f"[JWT] Invalid token: {error_string!r}{type_hint}")
         return jsonify({'error': error_string or 'Invalid or expired token'}), 401
     
     # CORS - Allow all for development
@@ -93,32 +95,34 @@ def create_app(config_name='production'):
     app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
     app.register_blueprint(topics_bp, url_prefix='/api/topics')
 
-    @app.before_request
-    def log_auth_header():
-        if request.method != 'OPTIONS' and request.path.startswith('/api/') and request.path != '/api/health':
-            auth = request.headers.get('Authorization')
-            if auth:
-                preview = auth[:25] + '...' if len(auth) > 25 else auth
-                print(f"[Auth] {request.method} {request.path} Authorization: {preview}")
-            else:
-                print(f"[Auth] {request.method} {request.path} Authorization: (missing)")
-    
+    if os.environ.get('ENABLE_AUTH_LOGGING') == '1':
+        @app.before_request
+        def log_auth_header():
+            if request.method != 'OPTIONS' and request.path.startswith('/api/') and request.path != '/api/health':
+                auth = request.headers.get('Authorization')
+                if auth:
+                    preview = auth[:25] + '...' if len(auth) > 25 else auth
+                    print(f"[Auth] {request.method} {request.path} Authorization: {preview}")
+                else:
+                    print(f"[Auth] {request.method} {request.path} Authorization: (missing)")
+
     @app.route('/api/health')
     def health_check():
         return jsonify({'status': 'ok'})
-    
-
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_react(path):
         if path.startswith('api/'):
             return jsonify({'error': 'not found'}), 404
-        
+        if not app.static_folder or not os.path.isdir(app.static_folder):
+            frontend_url = os.environ.get('FRONTEND_URL', '').rstrip('/')
+            if frontend_url:
+                return redirect(frontend_url)
+            return jsonify({'message': 'Routine Tracker API', 'docs': '/api/health'}), 200
         file_path = os.path.join(app.static_folder, path)
         if path and os.path.exists(file_path):
             return send_from_directory(app.static_folder, path)
-        
         return send_from_directory(app.static_folder, 'index.html')
 
 

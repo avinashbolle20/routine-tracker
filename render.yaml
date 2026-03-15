@@ -1,0 +1,33 @@
+# Render Blueprint: deploy from repo root (New > Blueprint in Render dashboard)
+# Backend API + PostgreSQL. Create the Frontend (Static Site) separately - see DEPLOYMENT.md
+
+databases:
+  - name: routine-db
+    databaseName: routine
+    user: routine_user
+
+services:
+  - type: web
+    name: routine-api
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn run:app"
+    # Uncomment after you run `flask db init` and `flask db migrate` and commit migrations/
+    # releaseCommand: "flask db upgrade"
+    envVars:
+      - key: FLASK_APP
+        value: "run:app"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: routine-db
+          property: connectionString
+      # Set FRONTEND_URL after creating the Static Site (e.g. https://routine-tracker-xxxx.onrender.com)
+      - key: FRONTEND_URL
+        sync: false

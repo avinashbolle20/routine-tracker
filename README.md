@@ -42,3 +42,7 @@ setup.bat
 ```
 
 Then start backend and frontend as above.
+
+## Deploy (free hosting)
+
+To deploy the app to **Render** (backend + PostgreSQL + static frontend), see **[DEPLOYMENT.md](DEPLOYMENT.md)**.

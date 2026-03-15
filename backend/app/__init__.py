@@ -133,5 +133,9 @@ def create_app(config_name='production'):
     with app.app_context():
         db.create_all()
         print("Database ready!")
-    
+
     return app
+
+
+# So "gunicorn app:app" works (Render default) as well as "gunicorn run:app"
+app = create_app('production')

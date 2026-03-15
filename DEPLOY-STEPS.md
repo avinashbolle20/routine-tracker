@@ -1,6 +1,7 @@
-# Deploy Routine Tracker — Simple Steps
+# Deploy Routine Tracker — Simple Steps (100% FREE, no card)
 
-Follow these steps **one by one**. Do not skip.
+**Do not use "Blueprint"** — it asks for payment.  
+👉 **If you already saw the payment popup:** close it and use **[DEPLOY-FREE-NO-BLUEPRINT.md](DEPLOY-FREE-NO-BLUEPRINT.md)** instead. That guide creates the database and backend by hand with the **Free** plan (no card). The steps below use Blueprint; if that asks for payment, follow DEPLOY-FREE-NO-BLUEPRINT.md.
 
 ---
 

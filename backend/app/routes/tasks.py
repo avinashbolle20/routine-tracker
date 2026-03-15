@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.task import Task
 from app.models.day import Day
+from app.models.topic import Topic
 from app import db
 
 tasks_bp = Blueprint('tasks', __name__)
@@ -72,11 +73,16 @@ def delete_task(id):
     """Delete task"""
     user_id = int(get_jwt_identity())
     task = Task.query.get_or_404(id)
-    
+
     day = Day.query.get(task.day_id)
     if day.user_id != user_id:
         return jsonify({'error': 'Access denied'}), 403
-    
+
+    # Ensure related topic is removed first (PostgreSQL FK constraint)
+    topic = Topic.query.filter_by(task_id=task.id).first()
+    if topic:
+        db.session.delete(topic)
+
     db.session.delete(task)
     db.session.commit()
     day.update_completion_status()
